@@ -62,17 +62,9 @@ calc:
     FROM +code
     ARG GOOS=linux
     ARG GOARCH=amd64
-    ARG GO_EXTRA_LDFLAGS="-linkmode external -extldflags -static"
     RUN test -n "$GOOS" && test -n "$GOARCH"
-    ARG EARTHLY_TARGET_TAG_DOCKER
-    ARG VERSION=$EARTHLY_TARGET_TAG_DOCKER
-    ARG EARTHLY_GIT_HASH
-    ARG DEFAULT_BUILDKITD_IMAGE=earthly/buildkitd:$VERSION
-    ARG BUILD_TAGS=dfrunmount dfrunsecurity dfsecrets dfssh dfrunnetwork
     ARG GOCACHE=/go-cache
     RUN mkdir -p build
-    # Important! If you change the go build options, you may need to also change them
-    # in https://github.com/Homebrew/homebrew-core/blob/master/Formula/earthly.rb.
     RUN --mount=type=cache,target=$GOCACHE \
         go build \
             -o build/calc \
