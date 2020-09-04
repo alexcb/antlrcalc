@@ -19,8 +19,11 @@ func (l *calcListener) ExitFromStmt(c *parser.FromStmtContext) {
 	fmt.Printf("ExitFromStmt %v\n", c.GetText())
 }
 
-// calc takes a string expression and returns the evaluated result.
-func calc(inputStr string) int {
+func (l *calcListener) ExitRunStmt(c *parser.RunStmtContext) {
+	fmt.Printf("ExitRunStmt %v\n", c.GetText())
+}
+
+func walk(inputStr string) error {
 	input := antlr.NewInputStream(inputStr)
 	lexer := newLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
@@ -36,7 +39,7 @@ func calc(inputStr string) int {
 	var listener calcListener
 	antlr.ParseTreeWalkerDefault.Walk(&listener, p.EarthFile())
 
-	return 0
+	return nil // TODO how are errors returned?
 
 }
 
@@ -47,9 +50,12 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("got %s\n", string(s))
+	//fmt.Printf("got %s\n", string(s))
 
-	calc(string(s))
+	err = walk(string(s))
+	if err != nil {
+		panic(err)
+	}
 }
 
 ////////////////////////
