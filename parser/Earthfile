@@ -18,7 +18,10 @@ parser:
         -cp "/usr/local/lib/antlr-4.8-complete.jar:$CLASSPATH" \
         org.antlr.v4.Tool \
         -Dlanguage=Go \
-        Calc.g4
+        -lib EarthLexer.g4 \
+        -lib EarthParser.g4 \
+        EarthLexer.g4 \
+        EarthParser.g4
     RUN ls -la .
     SAVE ARTIFACT ./*.go / AS LOCAL ./
 

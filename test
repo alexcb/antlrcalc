@@ -1,0 +1,7 @@
+FROM golang:1.13-alpine3.11
+
+code:
+    FROM +deps
+    COPY --dir cmd ./
+    COPY ./parser+parser/*.go ./parser/
+    SAVE IMAGE

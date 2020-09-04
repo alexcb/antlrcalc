@@ -2,72 +2,21 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"io/ioutil"
 
 	"github.com/alexcb/antlrcalc/parser"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	prompt "github.com/c-bata/go-prompt"
 )
 
 type calcListener struct {
-	*parser.BaseCalcListener
+	*parser.BaseEarthParserListener
 
 	stack []int
 }
 
-func (l *calcListener) push(i int) {
-	l.stack = append(l.stack, i)
-
-}
-
-func (l *calcListener) pop() int {
-	if len(l.stack) < 1 {
-		panic("stack is empty unable to pop")
-	}
-
-	// Get the last value from the stack.
-	result := l.stack[len(l.stack)-1]
-
-	// Remove the last element from the stack.
-	l.stack = l.stack[:len(l.stack)-1]
-
-	return result
-}
-
-func (l *calcListener) ExitMulDiv(c *parser.MulDivContext) {
-	right, left := l.pop(), l.pop()
-
-	switch c.GetOp().GetTokenType() {
-	case parser.CalcParserMUL:
-		l.push(left * right)
-	case parser.CalcParserDIV:
-		l.push(left / right)
-	default:
-		panic(fmt.Sprintf("unexpected op: %s", c.GetOp().GetText()))
-	}
-}
-
-func (l *calcListener) ExitAddSub(c *parser.AddSubContext) {
-	right, left := l.pop(), l.pop()
-
-	switch c.GetOp().GetTokenType() {
-	case parser.CalcParserADD:
-		l.push(left + right)
-	case parser.CalcParserSUB:
-		l.push(left - right)
-	default:
-		panic(fmt.Sprintf("unexpected op: %s", c.GetOp().GetText()))
-	}
-}
-
-func (l *calcListener) ExitNumber(c *parser.NumberContext) {
-	i, err := strconv.Atoi(c.GetText())
-	if err != nil {
-		panic(err.Error())
-	}
-
-	l.push(i)
+func (l *calcListener) ExitFromStmt(c *parser.FromStmtContext) {
+	fmt.Printf("ExitFromStmt %v\n", c.GetText())
 }
 
 // calc takes a string expression and returns the evaluated result.
@@ -76,35 +25,28 @@ func calc(input string) int {
 	is := antlr.NewInputStream(input)
 
 	// Create the Lexer
-	lexer := parser.NewCalcLexer(is)
+	lexer := parser.NewEarthLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
 	// Create the Parser
-	p := parser.NewCalcParser(stream)
+	p := parser.NewEarthParser(stream)
 
 	// Finally parse the expression (by walking the tree)
 	var listener calcListener
-	antlr.ParseTreeWalkerDefault.Walk(&listener, p.Start())
+	antlr.ParseTreeWalkerDefault.Walk(&listener, p.EarthFile())
 
-	return listener.pop()
+	return 0
 
-}
-
-func executor(in string) {
-	fmt.Printf("Answer: %d\n", calc(in))
-}
-
-func completer(in prompt.Document) []prompt.Suggest {
-	var ret []prompt.Suggest
-	return ret
 }
 
 func main() {
-	p := prompt.New(
-		executor,
-		completer,
-		prompt.OptionPrefix(">>> "),
-		prompt.OptionTitle("calc"),
-	)
-	p.Run()
+
+	s, err := ioutil.ReadFile("test")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("got %s\n", string(s))
+
+	calc(string(s))
 }
